@@ -1,6 +1,7 @@
 package at.kaindorf.webshop.config;
 
 import at.kaindorf.webshop.jwt.JwtAuthenticationFilter;
+import at.kaindorf.webshop.jwt.JwtUnauthorizedEndpoint;
 import at.kaindorf.webshop.pojos.Role;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,8 @@ public class SecurityConfig {
 
   @Autowired
   private JwtAuthenticationFilter jwtAuthenticationFilter;
+  @Autowired
+  private JwtUnauthorizedEndpoint jwtUnauthorizedEndpoint;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,10 +42,11 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)      // required when using JWT
         .authorizeHttpRequests(request ->
             request.requestMatchers("/api/auth/*").permitAll()   // * -> /api/auth/login    ** -> /api/auth/a/b/login
-                .requestMatchers(HttpMethod.GET,"/api/resources/**").hasAuthority(Role.USER.name())
+                .requestMatchers(HttpMethod.GET,"/api/resources/**").hasAnyAuthority(Role.USER.name())
                 .requestMatchers(HttpMethod.GET,"/api/public/**").permitAll()
                 .anyRequest().authenticated())
         .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtUnauthorizedEndpoint))
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }

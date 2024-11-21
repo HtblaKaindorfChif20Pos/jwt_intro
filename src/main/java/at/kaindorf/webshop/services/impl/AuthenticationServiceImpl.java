@@ -7,13 +7,14 @@ import at.kaindorf.webshop.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import javax.naming.AuthenticationException;
 
 /**
  * Project: Intro_JWT_5CHIF_2024
@@ -43,7 +44,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
       String token = jwtService.generateToken(user);
       return new AuthenticationResponse(token);
     } catch (DataIntegrityViolationException e) {
-      throw new RuntimeException("username already exists");   // ToDo: add execption handling
+      throw new BadCredentialsException("username already exists") {
+      };
     }
   }
 
@@ -55,8 +57,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
       String token = jwtService.generateToken((UserDetails) authentication.getPrincipal());
       return new AuthenticationResponse(token);
     } catch (Exception e) {
-      e.printStackTrace();
-      throw new RuntimeException(e.getMessage());
+      throw new UsernameNotFoundException(e.getMessage());
     }
   }
 }

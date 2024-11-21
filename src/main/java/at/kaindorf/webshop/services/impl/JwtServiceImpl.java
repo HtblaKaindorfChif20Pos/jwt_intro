@@ -24,6 +24,9 @@ import java.util.Date;
 @Slf4j
 public class JwtServiceImpl implements JwtService {
 
+  @Value("${token.signing.secret}")
+  private String jwtSecret;
+
   @Override
   public String generateToken(UserDetails userDetails) {
     return Jwts.builder()
@@ -54,10 +57,6 @@ public class JwtServiceImpl implements JwtService {
   public String extractUsername(String token) {
     return extractClaims(token).getSubject();
   }
-
-  @Value("${token.signing.secret}")
-  private String jwtSecret;
-
 
   /**
    * usage of HmacSHA256 Algorithm
